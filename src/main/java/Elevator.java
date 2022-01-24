@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.TreeSet;
 
 public class Elevator {
     private final int id;
@@ -7,23 +6,32 @@ public class Elevator {
     private int destination;
     private Doors doors;
 
-    private final ArrayList<Integer> to_visit;
+    private final TreeSet<Event> to_visit;
 
     Elevator(int id) {
         this.id = id;
         floor = 0;
         destination = 0;
         doors = Doors.OPEN;
-        to_visit = new ArrayList<>();
+        to_visit = new TreeSet<>();
     }
 
     void newWaitingPerson(int from, int direction) {
-        to_visit.add(from);
-        // TODO: is direction useful?
+        to_visit.add(new Event(from));
+
+        if(direction == 1) {
+            if(from > floor && from < destination) {
+                destination = from;
+            }
+        } else {
+            if(from < floor && from > destination) {
+                destination = from;
+            }
+        }
     }
 
     void pushButton(int floor) {
-        to_visit.add(floor);
+        to_visit.add(new Event(floor));
     }
 
     void nextStep() {
@@ -32,14 +40,25 @@ public class Elevator {
         } else if(destination < floor) {
             floor--;
         } else {
+            to_visit.remove(new Event(floor));
             if(doors == Doors.CLOSED) {
                 doors = Doors.OPEN;
-                to_visit.removeAll(Collections.singleton(floor));
             }
             else {
-                while(!to_visit.isEmpty() && destination == floor) {
-                    // TODO: something smarter than FCFS
-                    destination = to_visit.remove(0);
+                if(!to_visit.isEmpty()) {
+                    // FCFS but with stopping in between
+                    // TODO(?): something smarter
+                    Event next = new Event(-1);
+                    for(Event e : to_visit) {
+                        if(next.timestamp > e.timestamp) {
+                            next = e;
+                        }
+                    }
+                    if(next.destination - floor > 0) {
+                        destination = to_visit.ceiling(new Event(floor)).destination;
+                    } else {
+                        destination = to_visit.floor(new Event(floor)).destination;
+                    }
                 }
                 // doors can stay open if elevator has nothing to do
                 if(destination != floor) {
@@ -47,6 +66,10 @@ public class Elevator {
                 }
             }
         }
+    }
+
+    int queueSize() {
+        return to_visit.size();
     }
 
     ElevatorStatus getStatus() {

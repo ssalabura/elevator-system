@@ -21,11 +21,38 @@ public class ElevatorSystem {
             throw new IllegalArgumentException("Floor should not be negative");
         }
         people.add(new Person(this, from, to));
-        // TODO: smarter assignment
-        Elevator selectedElevator = elevators[0];
-
+        // in realistic scenario we only know the direction
         int direction = to > from ? 1 : -1;
-        selectedElevator.newWaitingPerson(from, direction);
+
+        // TODO(?): smarter assignment
+        Elevator bestElevator = null;
+        int points = (int) 1e9; // lower is better
+
+        for(Elevator elevator : elevators) {
+            ElevatorStatus status = elevator.getStatus();
+            int elevatorPoints;
+            // "good" scenario:
+            // elevator can stop during its route
+            // we choose the closest one
+            if((direction == 1 && status.currentFloor < from && status.destinationFloor > from) ||
+                    (direction == -1 && status.currentFloor > from && status.destinationFloor < from)) {
+                elevatorPoints = Math.abs(status.currentFloor - from);
+            }
+            // "bad" scenario:
+            // we take into account elevator's original route length (or 0 if stationary) and its workload
+            else {
+                int workloadConstant = 2; // TODO
+                elevatorPoints = Math.abs(status.destinationFloor - status.currentFloor) +
+                        Math.abs(from - status.destinationFloor) +
+                        workloadConstant * elevator.queueSize();
+            }
+            if(elevatorPoints < points) {
+                points = elevatorPoints;
+                bestElevator = elevator;
+            }
+        }
+
+        bestElevator.newWaitingPerson(from, direction);
     }
 
     void removePerson(Person person) {

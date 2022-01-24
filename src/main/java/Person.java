@@ -34,6 +34,6 @@ public class Person {
     @Override
     public String toString() {
         return "{" + from + " -> " + to + ", " +
-                (elevator == null ? "waiting" : "elevator" + elevator.getStatus().id) + "}";
+                (elevator == null ? "waiting" : "elevator " + elevator.getStatus().id) + "}";
     }
 }
