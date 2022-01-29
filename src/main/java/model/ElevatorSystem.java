@@ -48,7 +48,7 @@ public class ElevatorSystem {
         }
 
         if (bestElevator != null) {
-            person.assigned = true;
+            person.assigned = bestElevator.getId();
             bestElevator.newWaitingPerson(person.getFrom(), direction);
         }
     }
@@ -60,8 +60,16 @@ public class ElevatorSystem {
     public void nextStep() {
         ArrayList<Person> peopleCopy = new ArrayList<>(people);
         for(Person person : peopleCopy) {
-            if(!person.assigned) {
+            if(person.assigned == -1) {
                 findElevatorForPerson(person);
+            } else if(person.elevator == null) {
+                // sometimes someone steals their elevator and we have to find a new one
+                ElevatorStatus status = elevators.get(person.assigned).getStatus();
+                if((status.direction == Direction.UP && status.currentFloor > person.getFrom()) ||
+                        (status.direction == Direction.DOWN && status.currentFloor < person.getFrom()) ||
+                        status.direction == Direction.IDLE) {
+                    findElevatorForPerson(person);
+                }
             }
             person.nextStep();
         }
@@ -72,6 +80,10 @@ public class ElevatorSystem {
 
     public List<ElevatorStatus> getStatus() {
         return elevators.stream().map(Elevator::getStatus).toList();
+    }
+
+    public List<Person> getPeople() {
+        return people;
     }
 
     public String getFullStatus() {

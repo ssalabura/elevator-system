@@ -83,6 +83,10 @@ public class Elevator {
         }
     }
 
+    public int getId() {
+        return id;
+    }
+
     int getQueueSize() {
         return toVisit.size();
     }

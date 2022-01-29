@@ -4,14 +4,14 @@ public class Person {
     private final ElevatorSystem system;
     private final int from;
     private final int to;
-    boolean assigned;
+    int assigned;
     Elevator elevator;
 
     Person(ElevatorSystem system, int from, int to) {
         this.system = system;
         this.from = from;
         this.to = to;
-        assigned = false;
+        assigned = -1;
     }
 
     void nextStep() {
