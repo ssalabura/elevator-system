@@ -4,55 +4,51 @@ import java.util.Arrays;
 public class ElevatorSystem {
     private final Elevator[] elevators;
     private final ArrayList<Person> people;
+    private int max_floor;
 
-    ElevatorSystem(int count) {
-        if(count < 1) {
+    ElevatorSystem(int elevators, int floors) {
+        if(elevators < 1) {
             throw new IllegalArgumentException("At least 1 elevator is needed");
         }
-        elevators = new Elevator[count];
-        for(int i=0; i<count; i++) {
-            elevators[i] = new Elevator(i);
+        this.elevators = new Elevator[elevators];
+        for(int i=0; i<elevators; i++) {
+            this.elevators[i] = new Elevator(i);
         }
         people = new ArrayList<>();
+        max_floor = floors;
     }
 
     public void addPerson(int from, int to) {
-        if(from < 0 || to < 0) {
-            throw new IllegalArgumentException("Floor should not be negative");
+        if(from < 0 || from > max_floor || to < 0 || to > max_floor) {
+            throw new IllegalArgumentException("Invalid floor, should be between 0 and " + max_floor);
         }
-        people.add(new Person(this, from, to));
-        // in realistic scenario we only know the direction
-        int direction = to > from ? 1 : -1;
+        Person new_person = new Person(this, from, to);
+        people.add(new_person);
+        findElevatorForPerson(new_person);
+    }
 
-        // TODO(?): smarter assignment
-        Elevator bestElevator = null;
-        int points = (int) 1e9; // lower is better
+    void findElevatorForPerson(Person person) {
+        Direction direction = person.getDirection();
+
+        Elevator best_elevator = null;
+        int best_distance = (int) 1e9; // lower is better
 
         for(Elevator elevator : elevators) {
             ElevatorStatus status = elevator.getStatus();
-            int elevatorPoints;
-            // "good" scenario:
-            // elevator can stop during its route
-            // we choose the closest one
-            if((direction == 1 && status.currentFloor < from && status.destinationFloor > from) ||
-                    (direction == -1 && status.currentFloor > from && status.destinationFloor < from)) {
-                elevatorPoints = Math.abs(status.currentFloor - from);
-            }
-            // "bad" scenario:
-            // we take into account elevator's original route length (or 0 if stationary) and its workload
-            else {
-                int workloadConstant = 2; // TODO
-                elevatorPoints = Math.abs(status.destinationFloor - status.currentFloor) +
-                        Math.abs(from - status.destinationFloor) +
-                        workloadConstant * elevator.queueSize();
-            }
-            if(elevatorPoints < points) {
-                points = elevatorPoints;
-                bestElevator = elevator;
+            if((status.direction == direction && status.currentFloor < person.getFrom()) ||
+                    (status.direction == Direction.IDLE && elevator.getQueueSize() == 0)) {
+                int elevator_distance = Math.abs(status.currentFloor - person.getFrom());
+                if(elevator_distance < best_distance) {
+                    best_distance = elevator_distance;
+                    best_elevator = elevator;
+                }
             }
         }
 
-        bestElevator.newWaitingPerson(from, direction);
+        if (best_elevator != null) {
+            person.assigned = true;
+            best_elevator.newWaitingPerson(person.getFrom(), direction);
+        }
     }
 
     void removePerson(Person person) {
@@ -62,6 +58,9 @@ public class ElevatorSystem {
     public void nextStep() {
         ArrayList<Person> peopleCopy = new ArrayList<>(people);
         for(Person person : peopleCopy) {
+            if(!person.assigned) {
+                findElevatorForPerson(person);
+            }
             person.nextStep();
         }
         for(Elevator elevator : elevators) {
@@ -77,13 +76,14 @@ public class ElevatorSystem {
         return people;
     }
 
-    Elevator getOpenedElevator(int floor) {
+    Elevator[] getOpenElevators(int floor) {
+        ArrayList<Elevator> list = new ArrayList<>();
         for(Elevator elevator : elevators) {
             ElevatorStatus status = elevator.getStatus();
             if(status.currentFloor == floor && status.doors == Doors.OPEN) {
-                return elevator;
+                list.add(elevator);
             }
         }
-        return null;
+        return list.toArray(Elevator[]::new);
     }
 }

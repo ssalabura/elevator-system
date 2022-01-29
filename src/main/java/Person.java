@@ -2,18 +2,26 @@ public class Person {
     private final ElevatorSystem system;
     private final int from;
     private final int to;
-    private Elevator elevator;
+    boolean assigned;
+    Elevator elevator;
 
     Person(ElevatorSystem system, int from, int to) {
         this.system = system;
         this.from = from;
         this.to = to;
+        assigned = false;
     }
 
     void nextStep() {
         if(elevator == null) {
-            Elevator myElevator = system.getOpenedElevator(from);
-            if(myElevator != null) stepInto(myElevator);
+            Elevator[] elevators = system.getOpenElevators(from);
+            for(Elevator elevator : elevators) {
+                ElevatorStatus status = elevator.getStatus();
+                if(status.direction == getDirection() || status.direction == Direction.IDLE) {
+                    stepInto(elevator);
+                    break;
+                }
+            }
         } else {
             ElevatorStatus status = elevator.getStatus();
             if(status.currentFloor == to && status.doors == Doors.OPEN) {
@@ -29,6 +37,15 @@ public class Person {
 
     private void stepOut() {
         system.removePerson(this);
+    }
+
+    public int getFrom() {
+        return from;
+    }
+
+    public Direction getDirection() {
+        if(to > from) return Direction.UP;
+        else return Direction.DOWN;
     }
 
     @Override
