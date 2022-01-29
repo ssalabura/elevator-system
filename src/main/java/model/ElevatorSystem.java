@@ -32,24 +32,24 @@ public class ElevatorSystem {
     private void findElevatorForPerson(Person person) {
         Direction direction = person.getDirection();
 
-        Elevator best_elevator = null;
-        int best_distance = (int) 1e9; // lower is better
+        Elevator bestElevator = null;
+        int bestDistance = (int) 1e9; // lower is better
 
         for(Elevator elevator : elevators) {
             ElevatorStatus status = elevator.getStatus();
-            if((status.direction == direction && status.currentFloor < person.getFrom()) ||
-                    (status.direction == Direction.IDLE && elevator.getQueueSize() == 0)) {
-                int elevator_distance = Math.abs(status.currentFloor - person.getFrom());
-                if(elevator_distance < best_distance) {
-                    best_distance = elevator_distance;
-                    best_elevator = elevator;
-                }
+            int elevator_distance = Math.abs(status.currentFloor - person.getFrom());
+            if (elevator_distance < bestDistance && ((status.direction == direction && (
+                    (direction == Direction.UP && status.currentFloor < person.getFrom()) ||
+                    (direction == Direction.DOWN && status.currentFloor > person.getFrom()))) ||
+                    (status.direction == Direction.IDLE && elevator.getQueueSize() == 0))) {
+                bestDistance = elevator_distance;
+                bestElevator = elevator;
             }
         }
 
-        if (best_elevator != null) {
+        if (bestElevator != null) {
             person.assigned = true;
-            best_elevator.newWaitingPerson(person.getFrom(), direction);
+            bestElevator.newWaitingPerson(person.getFrom(), direction);
         }
     }
 

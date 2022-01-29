@@ -9,8 +9,6 @@ public class Elevator {
     private Doors doors;
     private Direction direction;
 
-    private Direction nextDirection;
-
     private final TreeSet<Integer> toVisit;
 
     Elevator(int id) {
@@ -19,7 +17,6 @@ public class Elevator {
         destination = 0;
         doors = Doors.OPEN;
         direction = Direction.IDLE;
-        nextDirection = Direction.IDLE;
         toVisit = new TreeSet<>();
     }
 
@@ -35,10 +32,12 @@ public class Elevator {
                 destination = from;
             }
         }
-        if(toVisit.size() == 1 && from != floor){
-            /* elevator is currently idle
-             * we have to update the direction after stopping on their floor */
-            nextDirection = direction;
+        if(this.direction == Direction.IDLE) {
+            if(from > floor) {
+                this.direction = Direction.UP;
+            } else if(from < floor) {
+                this.direction = Direction.DOWN;
+            }
         }
     }
 
@@ -64,12 +63,9 @@ public class Elevator {
             if(doors == Doors.CLOSED) {
                 doors = Doors.OPEN;
                 if(toVisit.isEmpty()) {
-                    // we use the previously stored direction
-                    direction = nextDirection;
-                    nextDirection = Direction.IDLE;
+                    direction = Direction.IDLE;
                 }
-            }
-            else {
+            } else {
                 if(!toVisit.isEmpty()) {
                     if(direction == Direction.UP) destination = toVisit.first();
                     else if(direction == Direction.DOWN) destination = toVisit.last();
