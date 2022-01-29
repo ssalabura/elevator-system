@@ -1,3 +1,5 @@
+package model;
+
 public class Person {
     private final ElevatorSystem system;
     private final int from;

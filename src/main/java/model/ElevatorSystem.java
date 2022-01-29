@@ -1,33 +1,35 @@
+package model;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 
 public class ElevatorSystem {
-    private final Elevator[] elevators;
+    private final ArrayList<Elevator> elevators;
     private final ArrayList<Person> people;
-    private int max_floor;
+    private final int maxFloor;
 
-    ElevatorSystem(int elevators, int floors) {
+    public ElevatorSystem(int elevators, int floors) {
         if(elevators < 1) {
             throw new IllegalArgumentException("At least 1 elevator is needed");
         }
-        this.elevators = new Elevator[elevators];
+        this.elevators = new ArrayList<>();
         for(int i=0; i<elevators; i++) {
-            this.elevators[i] = new Elevator(i);
+            this.elevators.add(new Elevator(i));
         }
         people = new ArrayList<>();
-        max_floor = floors;
+        maxFloor = floors;
     }
 
     public void addPerson(int from, int to) {
-        if(from < 0 || from > max_floor || to < 0 || to > max_floor) {
-            throw new IllegalArgumentException("Invalid floor, should be between 0 and " + max_floor);
+        if(from < 0 || from > maxFloor || to < 0 || to > maxFloor) {
+            throw new IllegalArgumentException("Invalid floor, should be between 0 and " + maxFloor);
         }
         Person new_person = new Person(this, from, to);
         people.add(new_person);
         findElevatorForPerson(new_person);
     }
 
-    void findElevatorForPerson(Person person) {
+    private void findElevatorForPerson(Person person) {
         Direction direction = person.getDirection();
 
         Elevator best_elevator = null;
@@ -68,12 +70,19 @@ public class ElevatorSystem {
         }
     }
 
-    public ElevatorStatus[] getStatus() {
-        return Arrays.stream(elevators).map(Elevator::getStatus).toArray(ElevatorStatus[]::new);
+    public List<ElevatorStatus> getStatus() {
+        return elevators.stream().map(Elevator::getStatus).toList();
     }
 
-    public ArrayList<Person> getPeople() {
-        return people;
+    public String getFullStatus() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Elevators:\n");
+        elevators.stream().map(Elevator::getStatus).forEach(elevatorStatus -> builder.append(elevatorStatus).append('\n'));
+        if(!people.isEmpty()) {
+            builder.append("People:\n");
+        }
+        people.forEach(person -> builder.append(person).append('\n'));
+        return builder.toString();
     }
 
     Elevator[] getOpenElevators(int floor) {

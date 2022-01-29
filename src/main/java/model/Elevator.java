@@ -1,3 +1,5 @@
+package model;
+
 import java.util.TreeSet;
 
 public class Elevator {
@@ -7,9 +9,9 @@ public class Elevator {
     private Doors doors;
     private Direction direction;
 
-    private Direction next_direction;
+    private Direction nextDirection;
 
-    private final TreeSet<Integer> to_visit;
+    private final TreeSet<Integer> toVisit;
 
     Elevator(int id) {
         this.id = id;
@@ -17,12 +19,12 @@ public class Elevator {
         destination = 0;
         doors = Doors.OPEN;
         direction = Direction.IDLE;
-        next_direction = Direction.IDLE;
-        to_visit = new TreeSet<>();
+        nextDirection = Direction.IDLE;
+        toVisit = new TreeSet<>();
     }
 
     void newWaitingPerson(int from, Direction direction) {
-        to_visit.add(from);
+        toVisit.add(from);
 
         if(direction == Direction.UP) {
             if(from > floor && from < destination) {
@@ -33,15 +35,15 @@ public class Elevator {
                 destination = from;
             }
         }
-        if(to_visit.size() == 1 && from != floor){
+        if(toVisit.size() == 1 && from != floor){
             /* elevator is currently idle
              * we have to update the direction after stopping on their floor */
-            next_direction = direction;
+            nextDirection = direction;
         }
     }
 
     void pushButton(int floor) {
-        to_visit.add(floor);
+        toVisit.add(floor);
         if(direction == Direction.IDLE) {
             if(floor > this.floor) {
                 direction = Direction.UP;
@@ -58,21 +60,21 @@ public class Elevator {
         } else if(destination < floor) {
             floor--;
         } else {
-            to_visit.remove(floor);
+            toVisit.remove(floor);
             if(doors == Doors.CLOSED) {
                 doors = Doors.OPEN;
-                if(to_visit.isEmpty()) {
+                if(toVisit.isEmpty()) {
                     // we use the previously stored direction
-                    direction = next_direction;
-                    next_direction = Direction.IDLE;
+                    direction = nextDirection;
+                    nextDirection = Direction.IDLE;
                 }
             }
             else {
-                if(!to_visit.isEmpty()) {
-                    if(direction == Direction.UP) destination = to_visit.first();
-                    else if(direction == Direction.DOWN) destination = to_visit.last();
+                if(!toVisit.isEmpty()) {
+                    if(direction == Direction.UP) destination = toVisit.first();
+                    else if(direction == Direction.DOWN) destination = toVisit.last();
                     else {
-                        destination = to_visit.first();
+                        destination = toVisit.first();
                         if(destination > floor) direction = Direction.UP;
                         if(destination < floor) direction = Direction.DOWN;
                     }
@@ -86,7 +88,7 @@ public class Elevator {
     }
 
     int getQueueSize() {
-        return to_visit.size();
+        return toVisit.size();
     }
 
     ElevatorStatus getStatus() {

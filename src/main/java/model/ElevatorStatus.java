@@ -1,3 +1,5 @@
+package model;
+
 public class ElevatorStatus {
     public int id;
     public int currentFloor;
