@@ -1,11 +1,15 @@
 package ui;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -15,8 +19,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import model.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class MainScene extends Scene {
     final int FLOORS_UI_THRESHOLD = 20;
@@ -26,6 +29,7 @@ public class MainScene extends Scene {
     List<Text> peopleTexts;
     VBox options;
     ElevatorSystem system;
+    Random random;
 
     int floors;
     int cellWidth;
@@ -37,6 +41,7 @@ public class MainScene extends Scene {
         this.root.setHgap(20);
         this.root.setVgap(20);
         peopleTexts = new ArrayList<>();
+        random = new Random();
     }
 
     void load(int elevators, int floors) {
@@ -99,6 +104,8 @@ public class MainScene extends Scene {
         options = new VBox(20);
         options.setAlignment(Pos.CENTER);
 
+        VBox nextStepBox = new VBox(10);
+
         Button nextStepButton = new Button("Next Step");
         nextStepButton.setOnAction(event -> {
             system.nextStep();
@@ -106,25 +113,66 @@ public class MainScene extends Scene {
             updatePeople();
         });
         nextStepButton.setAlignment(Pos.CENTER);
-        options.getChildren().add(nextStepButton);
 
+        HBox autoplayBox = new HBox(10);
+        CheckBox autoplayCheckBox = new CheckBox();
+        Timer timer = new Timer();
+        autoplayCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue) {
+                timer.scheduleAtFixedRate(new TimerTask() {
+                    @Override
+                    public void run() {
+                        system.nextStep();
+                        Platform.runLater(() -> {
+                            updateElevators();
+                            updatePeople();
+                        });
+                    }
+                },0,200);
+            } else {
+                timer.cancel();
+            }
+        });
+        Text autoPlayText = new Text("Autoplay");
+
+        autoplayBox.getChildren().addAll(autoplayCheckBox, autoPlayText);
+        autoplayBox.setAlignment(Pos.CENTER);
+        nextStepBox.getChildren().addAll(nextStepButton, autoplayBox);
+        nextStepBox.setAlignment(Pos.CENTER);
+        options.getChildren().add(nextStepBox);
+
+        VBox newPersonBox = new VBox(10);
         if(floors > FLOORS_UI_THRESHOLD) {
-            VBox newPersonBox = new VBox(10);
-            TextField newPersonTextField = new TextField();
+            HBox textFieldBox = new HBox(10);
+            textFieldBox.setPrefWidth(100);
+            TextField fromTextField = new TextField();
+            Text arrowText = new Text(" --> ");
+            TextField toTextField = new TextField();
+            textFieldBox.getChildren().addAll(fromTextField, arrowText, toTextField);
+
             Button newPersonButton = new Button("Add New Person");
             newPersonButton.setOnAction(event -> {
-                String[] s = newPersonTextField.getText().split(" ");
                 try {
-                    system.addPerson(Integer.parseInt(s[0]), Integer.parseInt(s[1]));
+                    system.addPerson(Integer.parseInt(fromTextField.getText()), Integer.parseInt(toTextField.getText()));
                 } catch (Exception ignored) {
                 }
-                newPersonTextField.setText("");
+                fromTextField.setText("");
+                toTextField.setText("");
                 updatePeople();
             });
-            newPersonBox.getChildren().addAll(newPersonTextField, newPersonButton);
-            newPersonBox.setAlignment(Pos.CENTER);
-            options.getChildren().add(newPersonBox);
+
+            newPersonBox.getChildren().addAll(textFieldBox, newPersonButton);
         }
+
+        Button newRandomPersonButton = new Button("Add Random Person");
+        newRandomPersonButton.setOnAction(event -> {
+            system.addPerson(random.nextInt(floors), random.nextInt(floors));
+            updatePeople();
+        });
+
+        newPersonBox.getChildren().add(newRandomPersonButton);
+        newPersonBox.setAlignment(Pos.CENTER);
+        options.getChildren().add(newPersonBox);
 
         Button backButton = new Button("Back to Main Menu");
         backButton.setOnAction(event -> {
