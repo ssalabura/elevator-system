@@ -12,6 +12,9 @@ public class ElevatorSystem {
         if(elevators < 1) {
             throw new IllegalArgumentException("At least 1 elevator is needed");
         }
+        if(floors < 0) {
+            throw new IllegalArgumentException("Number of floors should not be negative");
+        }
         this.elevators = new ArrayList<>();
         for(int i=0; i<elevators; i++) {
             this.elevators.add(new Elevator(i));
@@ -86,7 +89,7 @@ public class ElevatorSystem {
         return people;
     }
 
-    public String getFullStatus() {
+    public String getFullStatusString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Elevators:\n");
         elevators.stream().map(Elevator::getStatus).forEach(elevatorStatus -> builder.append(elevatorStatus).append('\n'));

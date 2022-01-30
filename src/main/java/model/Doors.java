@@ -1,5 +1,5 @@
 package model;
 
-enum Doors {
+public enum Doors {
     OPEN,CLOSED;
 }

@@ -45,9 +45,18 @@ public class Person {
         return from;
     }
 
+    public int getTo() {
+        return to;
+    }
+
     public Direction getDirection() {
         if(to > from) return Direction.UP;
-        else return Direction.DOWN;
+        else if(to < from) return Direction.DOWN;
+        else return Direction.IDLE;
+    }
+
+    public Elevator getElevator() {
+        return elevator;
     }
 
     @Override

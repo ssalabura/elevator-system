@@ -17,12 +17,7 @@ public class ElevatorStatus {
 
     @Override
     public String toString() {
-        char dir = ' ';
-        switch(direction) {
-            case UP -> dir = '^';
-            case DOWN -> dir = 'v';
-            case IDLE -> dir = '.';
-        }
+        char dir = Direction.getChar(direction);
         return "{" + id + ", " + currentFloor + " -> " + destinationFloor + ", " +
                 (doors == Doors.OPEN ? "[  ]" : "####") + ", " + dir + "}";
     }

@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -57,7 +58,7 @@ public class MenuScene extends Scene {
                 floorsField.setEffect(effect);
             }
             if(correct) {
-                MainScene mainScene = new MainScene(new VBox(), 1280, 720);
+                MainScene mainScene = new MainScene(new FlowPane(), 1280, 720);
                 mainScene.load(elevators, floors);
                 Program.setScene(mainScene);
             }
