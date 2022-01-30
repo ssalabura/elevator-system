@@ -116,21 +116,26 @@ public class MainScene extends Scene {
 
         HBox autoplayBox = new HBox(10);
         CheckBox autoplayCheckBox = new CheckBox();
-        Timer timer = new Timer();
-        autoplayCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue) {
-                timer.scheduleAtFixedRate(new TimerTask() {
-                    @Override
-                    public void run() {
-                        system.nextStep();
-                        Platform.runLater(() -> {
-                            updateElevators();
-                            updatePeople();
-                        });
-                    }
-                },0,200);
-            } else {
-                timer.cancel();
+        autoplayCheckBox.selectedProperty().addListener(new ChangeListener<>() {
+            Timer timer;
+
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                if (newValue) {
+                    timer = new Timer();
+                    timer.scheduleAtFixedRate(new TimerTask() {
+                        @Override
+                        public void run() {
+                            system.nextStep();
+                            Platform.runLater(() -> {
+                                updateElevators();
+                                updatePeople();
+                            });
+                        }
+                    }, 0, 200);
+                } else {
+                    timer.cancel();
+                }
             }
         });
         Text autoPlayText = new Text("Autoplay");
