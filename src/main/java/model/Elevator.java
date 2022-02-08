@@ -46,8 +46,7 @@ public class Elevator {
         if(direction == Direction.IDLE) {
             if(floor > this.floor) {
                 direction = Direction.UP;
-            }
-            else {
+            } else if(floor < this.floor) {
                 direction = Direction.DOWN;
             }
         }
